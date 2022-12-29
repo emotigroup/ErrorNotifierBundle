@@ -16,6 +16,7 @@
             <!-- console.exception or console.error (from bundle extension) depending on symfony/console version -->
             <argument type="service" id="mailer" />
             <argument type="service" id="twig" />
+            <argument type="service" id="request_stack" />
             <argument>%kernel.cache_dir%</argument>
             <argument>%elao.error_notifier.config%</argument>
         </service>

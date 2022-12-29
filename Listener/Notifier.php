@@ -18,6 +18,7 @@ use Symfony\Component\Console\Event\ConsoleErrorEvent;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Debug\Exception\FlattenException;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -61,6 +62,7 @@ class Notifier
     private $filteredRequestParams;
     private $command;
     private $commandInput;
+    private $requestStack;
 
     private static $tmpBuffer = null;
 
@@ -72,7 +74,7 @@ class Notifier
      * @param string           $cacheDir   cacheDir
      * @param array            $config     configure array
      */
-    public function __construct(Swift_Mailer $mailer, Twig_Environment $twig, $cacheDir, $config)
+    public function __construct(Swift_Mailer $mailer, Twig_Environment $twig, RequestStack $requestStack, $cacheDir, $config)
     {
         $this->mailer                = $mailer;
         $this->twig                  = $twig;
@@ -91,6 +93,7 @@ class Notifier
         $this->ignoredAgentsPattern  = $config['ignoredAgentsPattern'];
         $this->ignoredUrlsPattern    = $config['ignoredUrlsPattern'];
         $this->filteredRequestParams = $config['filteredRequestParams'];
+        $this->requestStack          = $requestStack;
 
         if (!is_dir($this->errorsDir)) {
             mkdir($this->errorsDir);
@@ -351,6 +354,7 @@ class Notifier
         $body = $this->twig->render('@ElaoErrorNotifier/mail.html.twig', array(
             'exception'       => $exception,
             'request'         => $request ? $this->filterRequest($request): null,
+            'requestStack'    => $this->requestStack,
             'status_code'     => $exception->getCode(),
             'context'         => $context,
             'command'         => $command,
